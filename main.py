@@ -38,3 +38,6 @@ DD.print_model_evaluation_result(eEncoded_data, ePredictions)
 
 print("========== DECISION TREE RESULT ==========")
 DD.TreePrinter(tree.tree, tHead, eValue_dicts).print_tree()
+
+print("\n\n========== PREDICT RESULT OF EVALUATION SET ==========")
+DD.print_all_results_of_eval(eEncoded_data, ePredictions)

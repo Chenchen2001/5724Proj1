@@ -154,6 +154,21 @@ def print_model_evaluation_result(data: list, predictions: list):
   print(f"Recall: {recall:.2f}")
   print(f"F1 Score: {f1_score:.2f}")
 
+def print_all_results_of_eval(data: list[dict], predict: list) -> None:
+  """
+    Print all evaluation data's actual income and predicted income.
+
+    Args:
+      data: The list of encoded evaluation set
+      predict: The list of predicted result of evaluation set's features
+  """
+  assert len(data) == len(predict)
+  for i in range(len(data)):
+    actual_res = '<=50k' if data[i]['income'] == 0 else '>50k'
+    predict_res = '<=50k' if predict[i] == 0 else '>50k'
+    print(f"SAMPLE {i+1}\t: actual result - {actual_res}\t predicted result - {predict_res}\t predict {actual_res == predict_res}.")
+
+
 class TreePrinter:
   """
     This class is for printing the decision tree(binary tree). Customized for course project.
