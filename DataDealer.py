@@ -149,10 +149,10 @@ def print_model_evaluation_result(data: list, predictions: list):
   """
   labels = [d['income'] for d in data]
   accuracy, precision, recall, f1_score = evaluate_model(labels, predictions)
-  print(f"Accuracy: {accuracy:.2f}")
-  print(f"Precision: {precision:.2f}")
-  print(f"Recall: {recall:.2f}")
-  print(f"F1 Score: {f1_score:.2f}")
+  print(f"Accuracy: {accuracy:.5f}")
+  print(f"Precision: {precision:.5f}")
+  print(f"Recall: {recall:.5f}")
+  print(f"F1 Score: {f1_score:.5f}")
 
 def print_all_results_of_eval(data: list[dict], predict: list) -> None:
   """
