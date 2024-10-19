@@ -107,6 +107,69 @@ class DecisionTreeGini:
     best_split = None
     best_gini = float('inf')
     n_features = len(features[0])
+    for feature_index in range(n_features):
+
+      # 如果该特征是连续的，使用数值分割点
+      if feature_index in self.numeric_feature_index:
+
+        # 对数据按特征值排序
+        feature_and_labels = sorted(zip(features, labels), key=lambda x: x[0][feature_index])
+        sorted_features = [f for f, _ in feature_and_labels]
+        sorted_labels = [l for _, l in feature_and_labels]
+
+        # 累积统计左右子集的 "yes" 和 "no" 计数
+        left_yes_count = 0
+        left_no_count = 0
+        right_yes_count = sorted_labels.count(1)
+        right_no_count = len(sorted_labels) - right_yes_count
+
+        # 遍历所有可能的分割点，更新左右子集计数并计算基尼指数
+        for i in range(1, len(sorted_features)):
+          if sorted_labels[i - 1] == 1:
+            left_yes_count += 1
+            right_yes_count -= 1
+          else:
+            left_no_count += 1
+            right_no_count -= 1
+
+          # 确保每个分割点都是有效的
+          if sorted_features[i][feature_index] == sorted_features[i - 1][feature_index]:
+            continue
+
+          # 计算当前分割点的基尼指数
+          total_left = left_yes_count + left_no_count
+          total_right = right_yes_count + right_no_count
+          gini_left = 1 - (left_yes_count / total_left) ** 2 - (left_no_count / total_left) ** 2
+          gini_right = 1 - (right_yes_count / total_right) ** 2 - (right_no_count / total_right) ** 2
+          weighted_gini = (total_left / len(labels)) * gini_left + (total_right / len(labels)) * gini_right
+
+          # 更新最佳分割点
+          if weighted_gini < best_gini:
+            best_gini = weighted_gini
+            best_feature_index = feature_index
+            best_split = (sorted_features[i - 1][feature_index] + sorted_features[i][feature_index]) / 2
+
+      # 如果是非连续变量（分类特征），则逐个类别进行分割
+      else:
+        unique_values = set([row[feature_index] for row in features])
+        for value in unique_values:
+          _, left_labels, _, right_labels = self.split_dataset(features, labels, feature_index, value)
+
+          # 如果划分的子集为空，则跳过该分割
+          if len(left_labels) == 0 or len(right_labels) == 0:
+            continue
+
+          # 计算当前分割的基尼指数
+          current_gini = self.gini_split(left_labels, right_labels)
+
+          # 更新最佳分割点
+          if current_gini < best_gini:
+            best_gini = current_gini
+            best_feature_index = feature_index
+            best_split = value
+
+    return best_feature_index, best_split
+
     # old version
     # for feature_index in range(n_features):
     #   splits = set([row[feature_index] for row in features])
@@ -120,46 +183,6 @@ class DecisionTreeGini:
     #       best_feature_index = feature_index
     #       best_split = split
     # return best_feature_index, best_split
-
-    for feature_index in range(n_features):
-      # 1. 对数据按特征值排序
-      feature_and_labels = sorted(zip(features, labels), key=lambda x: x[0][feature_index])
-      sorted_features = [f for f, _ in feature_and_labels]
-      sorted_labels = [l for _, l in feature_and_labels]
-
-      # 2. 累积统计左右子集的 "yes" 和 "no" 计数
-      left_yes_count = 0
-      left_no_count = 0
-      right_yes_count = sorted_labels.count(1)
-      right_no_count = len(sorted_labels) - right_yes_count
-
-      # 3. 遍历所有可能的分割点，更新左右子集计数并计算基尼指数
-      for i in range(1, len(sorted_features)):
-        if sorted_labels[i - 1] == 1:
-          left_yes_count += 1
-          right_yes_count -= 1
-        else:
-          left_no_count += 1
-          right_no_count -= 1
-
-        # 确保每个分割点都是有效的
-        if sorted_features[i][feature_index] == sorted_features[i - 1][feature_index]:
-          continue
-
-        # 4. 计算当前分割点的基尼指数
-        total_left = left_yes_count + left_no_count
-        total_right = right_yes_count + right_no_count
-        gini_left = 1 - (left_yes_count / total_left) ** 2 - (left_no_count / total_left) ** 2
-        gini_right = 1 - (right_yes_count / total_right) ** 2 - (right_no_count / total_right) ** 2
-        weighted_gini = (total_left / len(labels)) * gini_left + (total_right / len(labels)) * gini_right
-
-        # 5. 更新最佳分割点
-        if weighted_gini < best_gini:
-          best_gini = weighted_gini
-          best_feature_index = feature_index
-          best_split = (sorted_features[i - 1][feature_index] + sorted_features[i][feature_index]) / 2
-
-    return best_feature_index, best_split
 
   def fit(self, features: list, labels: list, depth=0) -> tuple:
 
