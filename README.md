@@ -20,7 +20,7 @@ in the root direction of the project folder in Linux or MacOS. A Jupyter-style p
 
 If you want to set the hyperparameters like `MIN_SAMPLE_SPLIT` and `MAX_DEPTH`, you can edit the file `main.py` and make the corresponding changes. The result will be output in the file `res.txt` if you execute the program by the method above.
 
-Here's a decision tree demo generated with for `MIN_SAMPLE_SPLIT=5` and `MAX_DEPTH=5`. The `L` and `R` number in front of the feature stands for the layer of the tree and the  `L`s and `R`s shows the path from the root.
+Here's a decision tree demo generated with `MIN_SAMPLE_SPLIT=5` and `MAX_DEPTH=5`. The `L` and `R` number in front of the feature stands for the layer of the tree and the  `L`s and `R`s shows the path from the root.
 
 ```
 ========== DECISION TREE RESULT ==========
