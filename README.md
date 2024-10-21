@@ -71,7 +71,7 @@ R   R   R   R   L   |- INCOME >50k
 R   R   R   R   R   |- INCOME >50k
 ```
 
-For example,  `L   R   |- capital-gain <= 5095.5` stands for the left node of the root and the right node of the node above is decisioning whether `capital-gain` is smaller than or equals `5095.5`. For non-numeric feature, the node decision is based on `is` or `is not`.
+For example,  `L   R   |- capital-gain <= 5095.5` stands for the left node of the root and the right node of the node above is decisioning whether `capital-gain` is smaller than or equals `5095.5`. For non-numeric features, the node decision is based on `is` or `is not`.
 
 At Last, we print the prediction result of evaluation on Evaluation SET. Here's only part of the output.
 
