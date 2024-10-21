@@ -12,7 +12,7 @@ evaluation_set = DD.read_data('./adult/adult.test', tHead,
                              paraNumeric=numericIndex, 
                              paraRemove=[-2], isTest=True)
 TREE_MIN_SAMPLE_SPLIT = 10
-TREE_MAX_DEPTH = 5
+TREE_MAX_DEPTH = 10
 
 print(f"traing data size: {len(training_set)}\t evaluation data set: {len(evaluation_set)}")
 print(f"min_samples_split={TREE_MIN_SAMPLE_SPLIT}, max_depth={TREE_MAX_DEPTH}")

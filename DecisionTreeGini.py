@@ -77,7 +77,7 @@ class DecisionTreeGini:
 
   def gini_split(self, left_labels: list, right_labels: list) -> float:
     """
-      Calculate the GINI index of the given **two** labels.
+      Calculate the GINI index of the given two label lists.
 
       Args:
         left_labels: The list of label for calculating the GINI index.
@@ -107,23 +107,20 @@ class DecisionTreeGini:
     best_split = None
     best_gini = float('inf')
     n_features = len(features[0])
+    # optimized version
     for feature_index in range(n_features):
-
-      # 如果该特征是连续的，使用数值分割点
+      # find numeric split for numeric data
       if feature_index in self.numeric_feature_index:
-
-        # 对数据按特征值排序
+        # sort data based on feature
         feature_and_labels = sorted(zip(features, labels), key=lambda x: x[0][feature_index])
         sorted_features = [f for f, _ in feature_and_labels]
         sorted_labels = [l for _, l in feature_and_labels]
-
-        # 累积统计左右子集的 "yes" 和 "no" 计数
+        # count yes and no of two subsets
         left_yes_count = 0
         left_no_count = 0
         right_yes_count = sorted_labels.count(1)
         right_no_count = len(sorted_labels) - right_yes_count
-
-        # 遍历所有可能的分割点，更新左右子集计数并计算基尼指数
+        # foreach every possible split and update count number, calculate GINI
         for i in range(1, len(sorted_features)):
           if sorted_labels[i - 1] == 1:
             left_yes_count += 1
@@ -131,46 +128,38 @@ class DecisionTreeGini:
           else:
             left_no_count += 1
             right_no_count -= 1
-
-          # 确保每个分割点都是有效的
+          # ensure splie point available
           if sorted_features[i][feature_index] == sorted_features[i - 1][feature_index]:
             continue
-
-          # 计算当前分割点的基尼指数
+          # calculate GINI of present split
           total_left = left_yes_count + left_no_count
           total_right = right_yes_count + right_no_count
           gini_left = 1 - (left_yes_count / total_left) ** 2 - (left_no_count / total_left) ** 2
           gini_right = 1 - (right_yes_count / total_right) ** 2 - (right_no_count / total_right) ** 2
           weighted_gini = (total_left / len(labels)) * gini_left + (total_right / len(labels)) * gini_right
-
-          # 更新最佳分割点
+          # update best split
           if weighted_gini < best_gini:
             best_gini = weighted_gini
             best_feature_index = feature_index
             best_split = (sorted_features[i - 1][feature_index] + sorted_features[i][feature_index]) / 2
-
-      # 如果是非连续变量（分类特征），则逐个类别进行分割
+      # fing non-numeric split for non-numeric feature
       else:
         unique_values = set([row[feature_index] for row in features])
         for value in unique_values:
           _, left_labels, _, right_labels = self.split_dataset(features, labels, feature_index, value)
-
-          # 如果划分的子集为空，则跳过该分割
+          # pass split if size is 0
           if len(left_labels) == 0 or len(right_labels) == 0:
             continue
-
-          # 计算当前分割的基尼指数
+          # calculate GINI of present split
           current_gini = self.gini_split(left_labels, right_labels)
-
-          # 更新最佳分割点
+          # update best split
           if current_gini < best_gini:
             best_gini = current_gini
             best_feature_index = feature_index
             best_split = value
-
     return best_feature_index, best_split
 
-    # old version
+    # traditional version
     # for feature_index in range(n_features):
     #   splits = set([row[feature_index] for row in features])
     #   for split in splits:
@@ -185,39 +174,41 @@ class DecisionTreeGini:
     # return best_feature_index, best_split
 
   def fit(self, features: list, labels: list, depth=0) -> tuple:
+    """
+      Fit the decision tree model.
+      
+      Args:
+        feature: the feature list of the adult training data.
+        list: the label list of the adult training data.
+        depth: the current depth of tree, default 0, no need to name manully.
 
+      Returns:
+        A node of tree by tuple gives out (best_feature_index, best_split, left_subtree, right_subtree).
+    """
     n_samples = len(labels)
-
-    # 如果所有标签相同，返回该标签
+    # return the label if all labels the same
     if len(set(labels)) == 1:
       return labels[0]
-
-    # 检查是否没有特征或样本数小于最小分割样本数，或超过了最大深度
+    # check for hyper
     if len(features) == 0 or \
             n_samples < self.min_samples_split or \
             (self.max_depth is not None and depth >= self.max_depth):
-      # 确保 labels 不为空，否则返回 None 或一个默认值
+      # ensure labels are not empty or return None
       return max(set(labels), key=labels.count) if labels else None
-
-    # 找到最佳的特征和分割点
+    # find the best split of dataset
     best_feature_index, best_split = self.find_best_split_gini(features, labels)
-
-    # 如果没有找到合适的分割点，返回当前节点的多数类
+    # return majority label if best split not found
     if best_feature_index is None:
       return max(set(labels), key=labels.count) if labels else None
-
-    # 根据最佳分割点进行划分
+    # split based on best split point
     left_features, left_labels, right_features, right_labels = self.split_dataset(features, labels, best_feature_index,
                                                                                   best_split)
-
-    # 避免递归到空子集
+    # in case for empty subset
     if len(left_labels) == 0 or len(right_labels) == 0:
       return max(set(labels), key=labels.count) if labels else None
-
-    # 递归生成左子树和右子树
+    # generate left tree and right tree
     left_subtree = self.fit(left_features, left_labels, depth + 1)
     right_subtree = self.fit(right_features, right_labels, depth + 1)
-
     return (best_feature_index, best_split, left_subtree, right_subtree)
 
   def _predict(self, sample, tree):
@@ -236,4 +227,13 @@ class DecisionTreeGini:
         return self._predict(sample, right_subtree)
 
   def predict(self, features: list[list]) -> list:
+    """
+      Give out predicted data based on the decision tree trained and adult's evaluation features given.
+      
+      Args:
+        features: the list of evaluation features from adult's dataset.
+
+      Returns:
+        The predicted data list of features given. 
+    """
     return [self._predict(sample, self.tree) for sample in features]
